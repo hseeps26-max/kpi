@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root{--bg:#f5f6f8;--panel:#fff;--line:#e3e6ea;--fg:#1d2733;--muted:#66717d;--red:#c00000;--redbg:#fdecec;--amber:#8a6100;--amberbg:#fff6dc;--green:#2e7d32;--blue:#1f4e79;--c1:#c00000;--c2:#e08a00;--c3:#1f6fb2}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 "Segoe UI",Roboto,Arial,sans-serif}
+  .wrap{max-width:1180px;margin:0 auto;padding:16px}
+  h1{font-size:22px;margin:0}
+  .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .sub a{color:var(--blue)}
+  .lead{margin:10px 0 0;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:6px}
+  section{margin-top:22px}
+  h2{font-size:16px;margin:0 0 4px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+  .tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;color:#fff}
+  .t-req{background:var(--red)} .t-int{background:var(--blue)}
+  .note{color:var(--muted);font-size:12px;margin:0 0 10px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+  .tile .lb{font-size:12px;color:var(--muted)}
+  .tile .v{font-size:26px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+  .tile .s{font-size:11px;color:var(--muted)}
+  .tile.bad{background:var(--redbg);border-color:#f3b4b4} .tile.bad .v{color:var(--red)}
+  .tile.warn{background:var(--amberbg);border-color:#f0d58a} .tile.warn .v{color:var(--amber)}
+  .tile.ok .v{color:var(--green)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:12px;margin-top:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:hidden}
+  .card h3{font-size:14px;margin:0 0 2px} .card .note{margin-bottom:8px}
+  .tw{overflow:auto;max-height:360px}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+  th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  td.l,th.l{text-align:left;white-space:normal}
+  th{position:sticky;top:0;background:#f0f2f5;color:var(--muted);font-weight:600}
+  .st-bad{color:var(--red);font-weight:600} .st-warn{color:var(--amber);font-weight:600}
+  .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;min-width:60px}
+  .bar i{display:block;height:100%;background:var(--green)}
+  .bar i.low{background:var(--c2)}
+  .legend{display:flex;gap:12px;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+  .empty{color:var(--muted);font-size:12px;padding:8px 0}
+  #loading{padding:40px;text-align:center;color:var(--muted)}
+  #err{display:none;padding:12px;background:var(--redbg);color:var(--red);border-radius:6px;margin-top:12px}
+  select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff8e1;font-weight:600}
+  button{font:inherit;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:pointer}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+  #help{display:none;margin-top:14px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:8px;padding:12px 16px}
+  #help.open{display:block}
+  #help h2{margin-bottom:8px}
+  #help details{border-top:1px solid var(--line);padding:8px 0}
+  #help summary{cursor:pointer;font-weight:600;color:var(--blue)}
+  #help ol,#help ul{margin:6px 0 4px 20px;padding:0}
+  #help li{margin:3px 0}
+  #help table{margin:6px 0}
+  #help td,#help th{white-space:normal;text-align:left}
+  #help .lgl{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;color:#fff;background:var(--red);margin-right:4px}
+  #help .lgl.int{background:var(--blue)}
+  button.on{background:#fff6dc;border-color:#f0d58a}
+  @media print{button,select,#help{display:none!important}.tw{max-height:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1 id="title">Dashboard KPI An toàn – Sức khỏe</h1>
+      <div class="sub" id="sub">Đang tải…</div>
+    </div>
+    <div>Năm: <select id="yearSel" onchange="load(this.value)"></select> <button onclick="load(document.getElementById('yearSel').value)">Làm mới</button> <button onclick="window.print()">In / PDF</button> <button id="helpBtn" onclick="toggleHelp()">Hướng dẫn</button></div>
+  </div>
+  <div id="err"></div>
+  <div id="help">
+    <h2>Hướng dẫn sử dụng</h2>
+    <p class="note">Nhập số liệu trong Google Sheets; dashboard chỉ để xem. Sau khi nhập, bấm <b>Làm mới</b>.</p>
+
+    <details open><summary>1. Hệ thống gồm những gì</summary>
+      <table>
+        <tr><th>Sheet</th><th>Nội dung</th><th>Căn cứ</th></tr>
+        <tr><td>TNLD_Thang</td><td>Số liệu theo tháng (12 dòng/năm): TNLĐ, sự cố, giờ công, chỉ số nội bộ</td><td><span class="lgl">NĐ 39/2016</span><span class="lgl int">Nội bộ</span></td></tr>
+        <tr><td>HuanLuyen</td><td>Mỗi người một dòng: nhóm 1–6, ngày huấn luyện; tự tính hạn, trạng thái</td><td><span class="lgl">NĐ 44/2016</span></td></tr>
+        <tr><td>KiemDinh</td><td>Mỗi thiết bị nghiêm ngặt một dòng: ngày kiểm định, ngày hết hạn</td><td><span class="lgl">NĐ 44/2016</span></td></tr>
+        <tr><td>QuanTrac</td><td>Mỗi lần quan trắc môi trường lao động một dòng</td><td><span class="lgl">NĐ 44/2016</span></td></tr>
+        <tr><td>TongHop</td><td>Tự tổng hợp theo năm chọn ở ô B3; không sửa công thức</td><td>—</td></tr>
+      </table>
+    </details>
+
+    <details><summary>2. Nhập số liệu hằng tháng</summary>
+      <ol>
+        <li><b>Trước ngày 05:</b> các đầu mối gửi số liệu tháng trước.</li>
+        <li><b>Trước ngày 07:</b> nhập vào TNLD_Thang đúng dòng năm/tháng; cập nhật HuanLuyen, KiemDinh, QuanTrac nếu có thay đổi.</li>
+        <li>Chỉ nhập số ≥ 0; ngày dạng dd/mm/yyyy; không xóa hoặc chèn cột.</li>
+        <li>Một vụ nhiều người bị nạn: tính 1 vụ, tính đủ số người. Bị thương nặng theo danh mục tại phụ lục NĐ 39/2016.</li>
+        <li>Huấn luyện lại hoặc kiểm định lại: sửa ngày trên dòng cũ, không thêm dòng mới. Người nghỉ việc: xóa dòng.</li>
+        <li>Mở dashboard, xử lý các mục tô <b style="color:var(--red)">đỏ</b> và <b style="color:var(--amber)">vàng</b>: giao người, giao hạn.</li>
+      </ol>
+    </details>
+
+    <details><summary>3. Đọc dashboard</summary>
+      <ul>
+        <li><b>Đỏ:</b> có người chết, bị thương nặng, sự cố nghiêm trọng, thiết bị quá hạn kiểm định, chưa quan trắc, hoặc chỉ số nội bộ dưới mục tiêu.</li>
+        <li><b>Vàng:</b> có TNLĐ, thiết bị hoặc người sắp hết hạn trong 30 ngày, tỷ lệ huấn luyện dưới 100%.</li>
+        <li><b>Thiết bị quá hạn kiểm định</b> phải dừng sử dụng cho đến khi được kiểm định lại.</li>
+        <li>Phần I–II là chỉ tiêu <b>bắt buộc</b> theo pháp luật; phần III là chỉ số <b>quản lý nội bộ</b>, không bắt buộc.</li>
+        <li>Chọn năm ở góc trên để xem năm khác; phần IV so sánh các năm.</li>
+      </ul>
+    </details>
+
+    <details><summary>4. Lập báo cáo định kỳ TNLĐ (NĐ 39/2016)</summary>
+      <table>
+        <tr><th>Kỳ</th><th>Hạn nộp</th><th>Lấy số liệu</th></tr>
+        <tr><td>6 tháng đầu năm</td><td>Trước 05/7</td><td>Bảng "Số liệu theo kỳ báo cáo", cột 6 tháng</td></tr>
+        <tr><td>Cả năm</td><td>Trước 10/01 năm sau</td><td>Bảng "Số liệu theo kỳ báo cáo", cột lũy kế</td></tr>
+      </table>
+      <p class="note">Nơi nhận: Sở Nội vụ nơi đặt trụ sở chính (xác nhận lại với địa phương). Lập theo đúng biểu mẫu quy định; phần phân loại theo nguyên nhân, yếu tố gây chấn thương, nghề nghiệp lấy từ biên bản điều tra. Đối chiếu với sổ theo dõi TNLĐ trước khi nộp.</p>
+    </details>
+
+    <details><summary>5. Chuyển sang năm mới (đầu tháng 01)</summary>
+      <ol>
+        <li>Nhập xong tháng 12, nộp báo cáo năm trước ngày 10/01.</li>
+        <li>Trong Google Sheets: menu <b>KPI AT-SK → 6. Chốt số liệu cuối năm</b> (lưu bản cố định làm hồ sơ).</li>
+        <li>Menu <b>KPI AT-SK → 5. Thêm năm mới</b>.</li>
+        <li>HuanLuyen, KiemDinh giữ nguyên, không tạo lại.</li>
+      </ol>
+    </details>
+
+    <details><summary>6. Cảnh báo email</summary>
+      <ul>
+        <li>Menu <b>3. Bật cảnh báo tự động hằng ngày (7h)</b>: email danh sách quá hạn / sắp hết hạn trong 30 ngày.</li>
+        <li>Menu <b>2. Gửi cảnh báo hết hạn ngay</b>: gửi thử ngay.</li>
+        <li>Người nhận: dòng <b>ALERT_EMAIL</b> đầu file Code.gs. Khi người bật cảnh báo chuyển công tác, người kế nhiệm tắt rồi bật lại.</li>
+      </ul>
+    </details>
+
+    <details><summary>7. Xử lý sự cố thường gặp</summary>
+      <table>
+        <tr><th>Hiện tượng</th><th>Cách xử lý</th></tr>
+        <tr><td>Không tải được số liệu</td><td>Giữ đúng tên 5 sheet; chạy lại "1. Khởi tạo bảng tính"</td></tr>
+        <tr><td>Dashboard không thay đổi sau khi sửa mã</td><td>Apps Script → Triển khai → Quản lý bài triển khai → Phiên bản mới</td></tr>
+        <tr><td>Trạng thái huấn luyện/kiểm định trống</td><td>Nhập lại ngày dạng dd/mm/yyyy</td></tr>
+        <tr><td>Cột tự tính bị lỗi hoặc trống</td><td>Công thức dòng 2 bị xóa: khôi phục từ lịch sử phiên bản</td></tr>
+        <tr><td>Không có năm mới để chọn</td><td>Chạy "5. Thêm năm mới"</td></tr>
+        <tr><td>Không nhận email cảnh báo</td><td>Kiểm tra thư rác; chạy "2. Gửi cảnh báo hết hạn ngay"</td></tr>
+      </table>
+    </details>
+
+    <details><summary>8. Bảo mật</summary>
+      <ul>
+        <li>Danh sách huấn luyện có họ tên, mã nhân viên: chỉ chia sẻ link trong nội bộ; không chọn "Bất kỳ ai".</li>
+        <li>Hạn chế người có quyền sửa Sheet; định kỳ tải bản sao lưu (Tệp → Tải xuống → Excel).</li>
+      </ul>
+    </details>
+  </div>
+  <div id="loading">Đang tải số liệu…</div>
+  <div id="app" style="display:none">
+    <p class="lead" id="lead"></p>
+
+    <section>
+      <h2>I. Tai nạn lao động và sự cố nghiêm trọng <span class="tag t-req">Bắt buộc · NĐ 39/2016</span></h2>
+      <p class="note">Báo cáo 6 tháng nộp trước 05/7; báo cáo năm nộp trước 10/01 năm sau.</p>
+      <div class="tiles" id="t39"></div>
+      <div class="grid">
+        <div class="card"><h3>Số liệu theo kỳ báo cáo</h3><p class="note">Dùng để điền báo cáo tổng hợp TNLĐ</p><div class="tw"><table id="tbl39"></table></div></div>
+        <div class="card"><h3>TNLĐ và sự cố theo tháng</h3><p class="note">Số người bị nạn và số sự cố nghiêm trọng</p><div class="legend" id="lg1"></div><div id="ch1"></div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>II. Huấn luyện, kiểm định, quan trắc <span class="tag t-req">Bắt buộc · NĐ 44/2016 sửa đổi</span></h2>
+      <div class="tiles" id="t44"></div>
+      <div class="grid">
+        <div class="card"><h3>Huấn luyện ATVSLĐ theo nhóm</h3><p class="note">Tỷ lệ người còn hiệu lực huấn luyện</p><div class="tw"><table id="tblHL"></table></div></div>
+        <div class="card"><h3>Thiết bị quá hạn / sắp hết hạn kiểm định</h3><p class="note">Thiết bị quá hạn phải dừng sử dụng đến khi được kiểm định</p><div class="tw" id="kdAlert"></div></div>
+        <div class="card"><h3>Người lao động quá hạn / sắp hết hạn huấn luyện</h3><p class="note">Cần bố trí huấn luyện định kỳ</p><div class="tw" id="hlAlert"></div></div>
+        <div class="card"><h3>Quan trắc môi trường lao động</h3><p class="note">Tối thiểu 1 lần/năm</p><div class="tw" id="qtTbl"></div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>III. Chỉ số quản lý nội bộ <span class="tag t-int">Không bắt buộc · ISO 45001</span></h2>
+      <div class="tiles" id="tInt"></div>
+      <div class="grid">
+        <div class="card"><h3>Sự cố ghi nhận theo tháng</h3><p class="note">LTI, MTC, RWC</p><div class="legend" id="lg2"></div><div id="ch2"></div></div>
+        <div class="card"><h3>Báo cáo chủ động theo tháng</h3><p class="note">Near miss và báo cáo không an toàn</p><div class="legend" id="lg3"></div><div id="ch3"></div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>IV. So sánh qua các năm</h2>
+      <p class="note">Tổng hợp cả năm theo số liệu trong sheet TNLD_Thang</p>
+      <div class="card"><div class="tw" id="ssTbl"></div></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const fInt = n => (n == null || isNaN(n)) ? '—' : Number(n).toLocaleString('vi-VN');
+const f1 = n => (n == null || isNaN(n)) ? '—' : Number(n).toLocaleString('vi-VN', {maximumFractionDigits: 1});
+const f2 = n => (n == null || !isFinite(n)) ? '—' : Number(n).toLocaleString('vi-VN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const fP = n => (n == null || !isFinite(n)) ? '—' : (n * 100).toLocaleString('vi-VN', {maximumFractionDigits: 1}) + '%';
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sum = (rows, k) => rows.reduce((a, r) => a + (Number(r[k]) || 0), 0);
+
+function tile(lb, v, s, cls) { return `<div class="tile ${cls || ''}"><div class="lb">${esc(lb)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s || '')}</div></div>`; }
+
+function load(year) {
+  document.getElementById('err').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+  google.script.run.withSuccessHandler(render).withFailureHandler(e => {
+    document.getElementById('loading').style.display = 'none';
+    const el = document.getElementById('err'); el.style.display = 'block'; el.textContent = 'Không tải được số liệu: ' + (e && e.message ? e.message : e);
+  }).getDashboardData(year ? Number(year) : null);
+}
+
+function render(d) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('title').textContent = 'Dashboard KPI An toàn – Sức khỏe ' + d.nam;
+  const sel = document.getElementById('yearSel');
+  sel.innerHTML = (d.years.length ? d.years : [d.nam]).map(y => `<option value="${y}"${y === d.nam ? ' selected' : ''}>${y}</option>`).join('');
+  document.getElementById('sub').innerHTML = 'Cập nhật: ' + esc(d.capNhat) + ' · <a href="' + esc(d.sheetUrl) + '" target="_blank">Mở Google Sheets</a>';
+
+  const all = d.thang;
+  const has = all.filter(r => r.co_so_lieu);
+  const lastM = has.length ? has[has.length - 1].thang : 0;
+  const ytdRows = all.filter(r => r.thang <= lastM);
+  const h1Rows = all.filter(r => r.thang <= 6);
+
+  // ---- I. NĐ 39 ----
+  const k39 = [['vu','Số vụ TNLĐ'],['vu_chet','Vụ có người chết'],['vu_2nguoi','Vụ ≥ 2 người bị nạn'],['nguoi','Người bị nạn'],['nu','Lao động nữ'],['chet','Người chết'],['nang','Bị thương nặng'],['ngay_nghi','Ngày nghỉ vì TNLĐ']];
+  const cost = rs => sum(rs,'cp_yte') + sum(rs,'cp_luong') + sum(rs,'cp_boithuong');
+  const Y = {}; k39.forEach(([k]) => Y[k] = sum(ytdRows, k)); Y.su_co = sum(ytdRows, 'su_co');
+  document.getElementById('t39').innerHTML =
+    tile('Số vụ TNLĐ', fInt(Y.vu), 'Lũy kế năm', Y.vu > 0 ? 'warn' : 'ok') +
+    tile('Vụ có người chết', fInt(Y.vu_chet), 'Lũy kế năm', Y.vu_chet > 0 ? 'bad' : 'ok') +
+    tile('Người bị nạn', fInt(Y.nguoi), 'Nữ: ' + fInt(Y.nu)) +
+    tile('Người chết', fInt(Y.chet), 'Lũy kế năm', Y.chet > 0 ? 'bad' : 'ok') +
+    tile('Bị thương nặng', fInt(Y.nang), 'Lũy kế năm', Y.nang > 0 ? 'bad' : 'ok') +
+    tile('Ngày nghỉ vì TNLĐ', fInt(Y.ngay_nghi), 'Lũy kế năm') +
+    tile('Chi phí do TNLĐ (tr.đ)', f1(cost(ytdRows)), 'Y tế + lương + bồi thường') +
+    tile('Sự cố kỹ thuật nghiêm trọng', fInt(Y.su_co), 'Lũy kế năm', Y.su_co > 0 ? 'bad' : 'ok');
+
+  const ky = [['6 tháng đầu năm', h1Rows], ['Lũy kế đến T' + (lastM || '—'), ytdRows], ['Năm ' + (d.nam - 1) + ' (cả năm)', d.thangTruoc || []]];
+  document.getElementById('tbl39').innerHTML =
+    '<tr><th class="l">Chỉ tiêu</th>' + ky.map(k => `<th>${esc(k[0])}</th>`).join('') + '</tr>' +
+    k39.concat([['su_co','Sự cố kỹ thuật nghiêm trọng']]).map(([k, lb]) => `<tr><td class="l">${esc(lb)}</td>${ky.map(x => `<td>${fInt(sum(x[1], k))}</td>`).join('')}</tr>`).join('') +
+    `<tr><td class="l">Chi phí do TNLĐ (tr.đ)</td>${ky.map(x => `<td>${f1(cost(x[1]))}</td>`).join('')}</tr>` +
+    `<tr><td class="l">Thiệt hại tài sản (tr.đ)</td>${ky.map(x => `<td>${f1(sum(x[1],'thiet_hai_ts'))}</td>`).join('')}</tr>`;
+
+  bars('ch1', 'lg1', ytdRows, [['nguoi','Người bị nạn','--c2'],['su_co','Sự cố nghiêm trọng','--c1']], false);
+
+  // ---- II. NĐ 44 ----
+  const hlCan = d.hl.reduce((a, r) => a + r.can, 0), hlCon = d.hl.reduce((a, r) => a + r.con, 0);
+  const hlRate = hlCan ? hlCon / hlCan : null;
+  const qtMau = d.qt.reduce((a, r) => a + r.mau, 0), qtKD = d.qt.reduce((a, r) => a + r.khong_dat, 0);
+  document.getElementById('t44').innerHTML =
+    tile('Huấn luyện còn hiệu lực', fP(hlRate), fInt(hlCon) + '/' + fInt(hlCan) + ' người', hlRate != null && hlRate < 1 ? 'warn' : 'ok') +
+    tile('Thiết bị còn hạn kiểm định', fInt(d.kd.con_han) + '/' + fInt(d.kd.tong), 'Thiết bị nghiêm ngặt') +
+    tile('Sắp hết hạn kiểm định', fInt(d.kd.sap_het), '≤ 30 ngày', d.kd.sap_het > 0 ? 'warn' : 'ok') +
+    tile('Quá hạn kiểm định', fInt(d.kd.qua_han), 'Phải dừng sử dụng', d.kd.qua_han > 0 ? 'bad' : 'ok') +
+    tile('Quan trắc MTLĐ ' + d.nam, d.qt.length ? 'Đã thực hiện' : 'Chưa thực hiện', d.qt.length ? d.qt.map(q => q.ngay).join(', ') : 'Tối thiểu 1 lần/năm', d.qt.length ? 'ok' : 'bad') +
+    tile('Mẫu quan trắc không đạt', fInt(qtKD), 'Trên ' + fInt(qtMau) + ' mẫu', qtKD > 0 ? 'warn' : 'ok');
+
+  document.getElementById('tblHL').innerHTML = '<tr><th>Nhóm</th><th>Số người</th><th>Còn hiệu lực</th><th>Tỷ lệ</th><th class="l"></th></tr>' +
+    d.hl.map(r => { const p = r.can ? r.con / r.can : null; return `<tr><td>${esc(r.nhom)}</td><td>${fInt(r.can)}</td><td>${fInt(r.con)}</td><td>${fP(p)}</td><td class="l"><div class="bar"><i class="${p != null && p < 1 ? 'low' : ''}" style="width:${p == null ? 0 : Math.round(p * 100)}%"></i></div></td></tr>`; }).join('');
+
+  const st = t => `<span class="${t === 'Quá hạn' ? 'st-bad' : 'st-warn'}">${esc(t)}</span>`;
+  document.getElementById('kdAlert').innerHTML = d.kdAlert.length ?
+    '<table><tr><th>Mã</th><th class="l">Thiết bị</th><th class="l">Vị trí</th><th>Hết hạn</th><th>Còn (ngày)</th><th>Trạng thái</th></tr>' +
+    d.kdAlert.map(r => `<tr><td>${esc(r.ma)}</td><td class="l">${esc(r.ten)}</td><td class="l">${esc(r.vt)}</td><td>${esc(r.het)}</td><td>${fInt(r.con)}</td><td>${st(r.tt)}</td></tr>`).join('') + '</table>'
+    : '<div class="empty">Không có thiết bị quá hạn hoặc sắp hết hạn.</div>';
+  document.getElementById('hlAlert').innerHTML = d.hlAlert.length ?
+    '<table><tr><th class="l">Họ tên</th><th class="l">Bộ phận</th><th>Nhóm</th><th>Hết hạn</th><th>Còn (ngày)</th><th>Trạng thái</th></tr>' +
+    d.hlAlert.map(r => `<tr><td class="l">${esc(r.ten)}</td><td class="l">${esc(r.bp)}</td><td>${esc(r.nhom)}</td><td>${esc(r.het)}</td><td>${fInt(r.con)}</td><td>${st(r.tt)}</td></tr>`).join('') + '</table>'
+    : '<div class="empty">Không có người quá hạn hoặc sắp hết hạn.</div>';
+  document.getElementById('qtTbl').innerHTML = d.qt.length ?
+    '<table><tr><th>Ngày</th><th class="l">Đơn vị</th><th>Số mẫu</th><th>Không đạt</th><th class="l">Yếu tố không đạt</th></tr>' +
+    d.qt.map(r => `<tr><td>${esc(r.ngay)}</td><td class="l">${esc(r.dv)}</td><td>${fInt(r.mau)}</td><td>${fInt(r.khong_dat)}</td><td class="l">${esc(r.yeu_to)}</td></tr>`).join('') + '</table>'
+    : '<div class="empty">Chưa có kết quả quan trắc năm ' + d.nam + '.</div>';
+
+  // ---- III. Nội bộ ----
+  const gc = sum(ytdRows, 'gio_cong'), lti = sum(ytdRows, 'lti');
+  const tri = lti + sum(ytdRows, 'mtc') + sum(ytdRows, 'rwc') + Y.chet;
+  const rate = (a, b) => b ? a / b : null;
+  const kt = rate(sum(ytdRows,'kt_th'), sum(ytdRows,'kt_kh')), ca = rate(sum(ytdRows,'ca_dong'), sum(ytdRows,'ca_ps')), ptw = rate(sum(ytdRows,'ptw_dat'), sum(ytdRows,'ptw_kt'));
+  document.getElementById('tInt').innerHTML =
+    tile('Giờ công', fInt(gc), 'Lũy kế') +
+    tile('LTIFR', f2(gc ? lti * 1e6 / gc : null), 'LTI × 1.000.000 / giờ công') +
+    tile('TRIR', f2(gc ? tri * 2e5 / gc : null), 'TRI × 200.000 / giờ công') +
+    tile('Near miss', fInt(sum(ytdRows,'near_miss')), 'Lũy kế') +
+    tile('Kiểm tra theo kế hoạch', fP(kt), 'Mục tiêu ≥ 95%', kt != null && kt < .95 ? 'bad' : '') +
+    tile('Đóng hành động khắc phục', fP(ca), 'Mục tiêu ≥ 90%', ca != null && ca < .9 ? 'bad' : '') +
+    tile('Tuân thủ PTW', fP(ptw), 'GP đạt / kiểm tra', ptw != null && ptw < 1 ? 'warn' : '');
+
+  bars('ch2', 'lg2', ytdRows, [['lti','LTI','--c1'],['mtc','MTC','--c2'],['rwc','RWC','--c3']], true);
+  bars('ch3', 'lg3', ytdRows, [['near_miss','Near miss','--c3'],['unsafe','Không an toàn','--c2']], false);
+
+  // ---- IV. So sánh các năm ----
+  document.getElementById('ssTbl').innerHTML = d.soSanh.length ?
+    '<table><tr><th>Năm</th><th>Số vụ TNLĐ</th><th>Người bị nạn</th><th>Người chết</th><th>Bị thương nặng</th><th>Ngày nghỉ</th><th>Sự cố NT</th><th>Giờ công</th><th>LTIFR</th><th>TRIR</th><th>Near miss</th></tr>' +
+    d.soSanh.map(r => `<tr${r.nam === d.nam ? ' style="background:#fff8e1;font-weight:600"' : ''}><td>${r.nam}</td><td>${fInt(r.vu)}</td><td>${fInt(r.nguoi)}</td><td class="${r.chet > 0 ? 'st-bad' : ''}">${fInt(r.chet)}</td><td>${fInt(r.nang)}</td><td>${fInt(r.ngay_nghi)}</td><td>${fInt(r.su_co)}</td><td>${fInt(r.gio_cong)}</td><td>${f2(r.ltifr)}</td><td>${f2(r.trir)}</td><td>${fInt(r.near_miss)}</td></tr>`).join('') + '</table>'
+    : '<div class="empty">Chưa có số liệu.</div>';
+
+  const parts = [];
+  parts.push(`Lũy kế ${lastM ? 'đến tháng ' + lastM : '—'}: ${fInt(Y.vu)} vụ TNLĐ, ${fInt(Y.chet)} người chết, ${fInt(Y.su_co)} sự cố nghiêm trọng.`);
+  if (d.kd.qua_han) parts.push(`${fInt(d.kd.qua_han)} thiết bị quá hạn kiểm định.`);
+  if (hlCan && hlCon < hlCan) parts.push(`${fInt(hlCan - hlCon)} người quá hạn huấn luyện.`);
+  if (!d.qt.length) parts.push(`Chưa quan trắc MTLĐ năm ${d.nam}.`);
+  document.getElementById('lead').textContent = parts.join(' ');
+}
+
+// Biểu đồ cột (stacked = true: cột chồng; false: cột nhóm), vẽ bằng SVG
+function bars(id, lgId, rows, series, stacked) {
+  const el = document.getElementById(id), lg = document.getElementById(lgId);
+  const css = getComputedStyle(document.documentElement);
+  const col = v => css.getPropertyValue(v).trim();
+  lg.innerHTML = series.map(s => `<span><span class="sw" style="background:${col(s[2])}"></span>${esc(s[1])}</span>`).join('');
+  if (!rows.length) { el.innerHTML = '<div class="empty">Chưa có số liệu.</div>'; return; }
+  const W = Math.max(280, el.clientWidth || 420), H = 200, ml = 30, mb = 22, mt = 8, mr = 6;
+  const tot = r => stacked ? series.reduce((a, s) => a + (r[s[0]] || 0), 0) : Math.max(...series.map(s => r[s[0]] || 0));
+  let max = Math.max(1, ...rows.map(tot)); const step = Math.max(1, Math.ceil(max / 4)); max = step * 4;
+  const y = v => H - mb - (v / max) * (H - mb - mt);
+  const bw = (W - ml - mr) / rows.length;
+  let s = `<svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-size="11" fill="#66717d">`;
+  for (let t = 0; t <= max; t += step) s += `<line x1="${ml}" x2="${W - mr}" y1="${y(t)}" y2="${y(t)}" stroke="#e3e6ea"/><text x="${ml - 4}" y="${y(t) + 4}" text-anchor="end">${t}</text>`;
+  rows.forEach((r, i) => {
+    const x0 = ml + i * bw + bw * 0.18, w = bw * 0.64;
+    if (stacked) {
+      let acc = 0;
+      series.forEach(se => { const v = r[se[0]] || 0; if (v) s += `<rect x="${x0}" width="${w}" y="${y(acc + v)}" height="${y(acc) - y(acc + v)}" fill="${col(se[2])}"><title>T${r.thang} – ${se[1]}: ${v}</title></rect>`; acc += v; });
+    } else {
+      const sw = w / series.length;
+      series.forEach((se, j) => { const v = r[se[0]] || 0; s += `<rect x="${x0 + j * sw}" width="${sw - 1}" y="${y(v)}" height="${H - mb - y(v)}" rx="2" fill="${col(se[2])}"><title>T${r.thang} – ${se[1]}: ${v}</title></rect>`; });
+    }
+    s += `<text x="${ml + i * bw + bw / 2}" y="${H - 6}" text-anchor="middle">T${r.thang}</text>`;
+  });
+  el.innerHTML = s + '</svg>';
+}
+
+function toggleHelp() {
+  const h = document.getElementById('help'), b = document.getElementById('helpBtn');
+  const open = h.classList.toggle('open'); b.classList.toggle('on', open);
+  b.textContent = open ? 'Đóng hướng dẫn' : 'Hướng dẫn';
+  if (open) h.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+load();
+</script>
+</body>
+</html>
